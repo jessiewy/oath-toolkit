@@ -67,6 +67,7 @@ struct cfg
 {
   int debug;
   int alwaysok;
+  int skippass;
   int try_first_pass;
   int use_first_pass;
   char *usersfile;
@@ -93,6 +94,8 @@ parse_cfg (int flags, int argc, const char **argv, struct cfg *cfg)
 	cfg->debug = 1;
       if (strcmp (argv[i], "alwaysok") == 0)
 	cfg->alwaysok = 1;
+       if (strcmp (argv[i], "skippass") == 0)
+  cfg->skippass = 1;
       if (strcmp (argv[i], "try_first_pass") == 0)
 	cfg->try_first_pass = 1;
       if (strcmp (argv[i], "use_first_pass") == 0)
@@ -121,6 +124,7 @@ parse_cfg (int flags, int argc, const char **argv, struct cfg *cfg)
 	D (("argv[%d]=%s", i, argv[i]));
       D (("debug=%d", cfg->debug));
       D (("alwaysok=%d", cfg->alwaysok));
+      D (("skippass=%d", cfg->skippass));
       D (("try_first_pass=%d", cfg->try_first_pass));
       D (("use_first_pass=%d", cfg->use_first_pass));
       D (("usersfile=%s", cfg->usersfile ? cfg->usersfile : "(null)"));
@@ -269,7 +273,11 @@ pam_sm_authenticate (pam_handle_t * pamh,
 
       /* user entered their system password followed by generated OTP? */
 
-      onlypasswd[password_len - cfg.digits] = '\0';
+      if (cfg.skippass == 1) {
+        onlypasswd[0] = '\0';
+      } else {
+        onlypasswd[password_len - cfg.digits] = '\0';
+      }
 
       DBG (("Password: %s ", onlypasswd));
 
